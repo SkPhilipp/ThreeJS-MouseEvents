@@ -1,4 +1,11 @@
 /**
+ * This library will add variables and methods!
+ *
+ * THREE.Object3D.prototype.addEventListener
+ * THREE.Object3D.prototype.removeEventListener
+ * THREE.Object3D.prototype.dispatchEvent
+ * THREE.Object3D.this._eventListeners
+ *
  * click	    The event occurs when the user clicks on an element
  * dblclick	    The event occurs when the user double-clicks on an element
  * mousedown	The event occurs when a user presses a mouse button over an element
@@ -6,6 +13,7 @@
  * mouseover	The event occurs when the pointer is moved onto an element
  * mouseout 	The event occurs when a user moves the mouse pointer out of an element
  * mouseup	    The event occurs when a user releases a mouse button over an element
+ *
  */
 THREE.MouseEvents = (function(){
 
@@ -19,7 +27,7 @@ THREE.MouseEvents = (function(){
      *
      * @param name event name, ie `mousedown`
      * @param camera
-     * @param objects most likely scene#children
+     * @param objects most likely `scene#children`
      * @param callback :function(intersects, event)
      * @param preventDefault (optional, default false)
      * @returns {Function}
@@ -32,17 +40,13 @@ THREE.MouseEvents = (function(){
             }
             // with this, we also assume there is only one mouse but i think that's Ok
             lastMouseEventX = event ? event.clientX : lastMouseEventX;
-            lastMouseEventY = event ? event.clientX : lastMouseEventX;
-            // TODO: find out what the magic numbers mean here (0.5?)
-            var vector = new THREE.Vector3(
-                (lastMouseEventX / window.innerWidth) * 2 - 1,
-              - (lastMouseEventY / window.innerHeight) * 2 + 1,
-                0.5
-            );
+            lastMouseEventY = event ? event.clientY : lastMouseEventY;
+            var vector = new THREE.Vector3((lastMouseEventX / window.innerWidth) * 2 - 1,
+                                         - (lastMouseEventY / window.innerHeight) * 2 + 1, 1);
             projector.unprojectVector(vector, camera);
-            var ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
+            var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
             var intersects = ray.intersectObjects(objects);
-            callback(intersects);
+            callback(intersects, event);
         };
         for(var i in names){
             document.addEventListener(names[i], eventListener, false);
@@ -67,33 +71,34 @@ THREE.MouseEvents = (function(){
         listen(['click', 'dblclick', 'mousedown', 'mouseup'], camera, scene.children, function(intersects, event){
             if(intersects.length > 0){
                 var intersect = intersects[0];
-                intersect.on(event.type, event);
+                intersect.object.dispatchEvent({ type: event.type });
             }
         });
 
         // for the move events we need to keep track of what the last object was that received a move event so we can
         // calculate when we emit a `mouseout` event.
         var lastIntersected;
+
+        // this method creates custom events, we not only need to change the type but also the function can be called
+        // without being triggered by a dom event, but instead a scene update.
         return listen(['mousemove'], camera, scene.children, function(intersects, event){
             if (intersects.length > 0){
-                var intersected = intersects[0];
+                var intersected = intersects[0].object;
                 if (intersected != lastIntersected){
-                    lastIntersected.on('mouseout', event);
-                    intersected.on('mouseover', event);
+                    intersected.dispatchEvent({ type: 'mouseover' });
+                    if(lastIntersected){
+                        lastIntersected.dispatchEvent({ type: 'mouseout' });
+                    }
                     lastIntersected = intersected;
                 }
-                intersected.on('mousemove', event);
+                intersected.dispatchEvent({ type: 'mousemove' });
             }
             else if (lastIntersected){
-                lastIntersected.on('mouseout', event);
+                lastIntersected.dispatchEvent({ type: 'mouseout' });
                 lastIntersected = null;
             }
         });
 
-        return moveListener;
-
     };
-
-    // TODO: possibly we have to add a THREE mesh prototype `on` default method if there isn't already one
 
 })();

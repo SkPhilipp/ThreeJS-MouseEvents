@@ -24,13 +24,11 @@ THREE.MouseEvents = (function(){
      * @param camera
      * @param objects most likely `scene#children`
      * @param callback :function(intersects, event)
-     * @param preventDefault (optional, default false)
      * @returns {Function}
      */
-    var listen = function(names, camera, objects, callback, preventDefault){
-        var preventDefault = preventDefault || false;
+    var listen = function(names, camera, objects, callback){
         var eventListener = function(event) {
-            if(event && preventDefault){
+            if(event){
                 event.preventDefault();
             }
             // with this, we also assume there is only one mouse but i think that's Ok

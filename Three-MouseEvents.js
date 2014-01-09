@@ -1,11 +1,6 @@
 /**
- * This library will add variables and methods!
- *
- * THREE.Object3D.prototype.addEventListener
- * THREE.Object3D.prototype.removeEventListener
- * THREE.Object3D.prototype.dispatchEvent
- * THREE.Object3D.this._eventListeners
- *
+ * Enables support for receiving the following events on the things you put into your scene:
+ * 
  * click	    The event occurs when the user clicks on an element
  * dblclick	    The event occurs when the user double-clicks on an element
  * mousedown	The event occurs when a user presses a mouse button over an element
